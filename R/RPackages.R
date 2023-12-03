@@ -4,6 +4,8 @@ timeSeq <- function(ts, T, mid=TRUE) {
         return(seq(0, T, by=ts))
 }
 
+######################################################################
+
 erlang <- function(x, n, γ) {
         (n*γ)^n*x^(n-1)*exp(-n*γ*x)/factorial(n-1)
 }
@@ -20,6 +22,8 @@ SInR_geom <- function(t, states, params) {
         })
 }
 
+######################################################################
+
 r2kappa <- function(r, n, offset=0){
         delta <- (1:n) - (n+1)/2
         res <- exp(delta*log(r))
@@ -34,6 +38,8 @@ kappa2r <- function(kappa, n){
         u <- uniroot(r2kappa, interval=c(1, rmax), n=n, offset=kappa)
         return(u$root)
 }
+
+######################################################################
 
 parGenerator <- function(n, mu, kappa, μ=0) {
         r <- kappa2r(kappa, n)
@@ -51,6 +57,8 @@ parCheck <- function(flow, ts, T) {
         return(c(tot = tot, mu = mu, kappa = kappa))
 }
 
+######################################################################
+
 Integration <- function(n, mu, kappa, ts, T, model=SInR_geom) {
         time <- timeSeq(ts, T, mid=FALSE)
         params <- parGenerator(n, mu, kappa)
@@ -63,25 +71,29 @@ Integration <- function(n, mu, kappa, ts, T, model=SInR_geom) {
         return(soln[,"R"])
 }
 
+######################################################################
+
 compPlot <- function(gamm, ode, ts, T) {
         df <- data.frame(Time = timeSeq(ts, T, FALSE), Gamma=gamm, ODE = ode)
         ggplot(df, aes(x=Time)) + geom_line(aes(y=Gamma, color = "Geometric")) +
-                geom_line(aes(y=ODE, color = "ODE"))
+                geom_line(aes(y=ODE, color = "ODE")) +
+                labs(title = "ODE & Gamma (CDF)", y = "Cumulative Density")
 }
 
 compPlotDens <- function(gamm, ode, ts, T) {
         df <- data.frame(Time = timeSeq(ts, T), Gamma=diff(gamm), ODE = diff(ode))
         ggplot(df, aes(x=Time)) + geom_line(aes(y=Gamma, color = "Geometric")) +
-                geom_line(aes(y=ODE, color = "ODE"))
+                geom_line(aes(y=ODE, color = "ODE")) +
+                labs(title = "ODE & Gamma (PDF*ts)", y = "Probability Density (*ts)")
 }
+
+######################################################################
 
 gammaFlowDens <- function (mu, kappa, ts, T){
         b <- boundaries(ts, T)
         cum <- dgamma(b, 1/kappa, 1/(mu*kappa))
         return(ts*cum)
 }
-
-
 
 ######################################################################
 
