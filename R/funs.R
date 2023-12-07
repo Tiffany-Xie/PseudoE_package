@@ -4,6 +4,10 @@ timeSeq <- function(ts, T, mid=TRUE) {
         return(seq(0, T, by=ts))
 }
 
+midpoints <- function(ts){
+	return((ts[-1]+ts[-length(ts)])/2)
+}
+
 ######################################################################
 
 erlang <- function(x, n, γ) {
