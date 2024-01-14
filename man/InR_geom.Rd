@@ -2,13 +2,13 @@
 \alias{SInR_geom}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-SInR_geom
+InR_geom
 }
 \description{
 ODE model with geometrically distributed substage duration.
 }
 \usage{
-SInR_geom(t, states, params)
+InR_geom(t, states, params)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
