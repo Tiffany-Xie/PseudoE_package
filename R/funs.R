@@ -5,7 +5,7 @@ timeSeq <- function(ts, T, mid=TRUE) {
 }
 
 midpoints <- function(ts){
-	return((ts[-1]+ts[-length(ts)])/2)
+        return((ts[-1]+ts[-length(ts)])/2)
 }
 
 ######################################################################
@@ -14,7 +14,7 @@ erlang <- function(x, n, γ) {
         (n*γ)^n*x^(n-1)*exp(-n*γ*x)/factorial(n-1)
 }
 
-SInR_geom <- function(t, states, params) {
+In_geom <- function(t, states, params) {
         with(as.list(c(params)), {
                 I <- states[1:n]
                 R <- states[[n+1]]
@@ -25,6 +25,20 @@ SInR_geom <- function(t, states, params) {
                 return(list(c(dI, dR)))
         })
 }
+
+SInR <- function(){
+        with(as.list(c(params)), {
+                S <- states[1]
+                I <- states[2:n]
+                R <- states[[n+2]]
+
+                dS <- μ - β*S*I - μ*S
+                Iprev <- c(β*S*I + (n*γ + μ)*I[1], I[1:(n-1)])
+                dI <- n*γ*Iprev - (n*γ + μ)*I
+                dR <- γ*I[[n]] - μ*R
+        })
+}
+
 
 ######################################################################
 
@@ -63,7 +77,7 @@ parCheck <- function(flow, ts, T) {
 
 ######################################################################
 
-Integration <- function(n, mu, kappa, ts, T, model=SInR_geom) {
+Integration <- function(n, mu, kappa, ts, T, model=In_geom) {
         time <- timeSeq(ts, T, mid=FALSE)
         params <- parGenerator(n, mu, kappa)
         states <- c(1, numeric(n))
@@ -100,6 +114,3 @@ gammaFlowDens <- function (mu, kappa, ts, T){
 }
 
 ######################################################################
-
-
-
