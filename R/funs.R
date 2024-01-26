@@ -14,7 +14,7 @@ erlang <- function(x, n, γ) {
         (n*γ)^n*x^(n-1)*exp(-n*γ*x)/factorial(n-1)
 }
 
-In_geom <- function(t, states, params) {
+InR_geom <- function(t, states, params) {
         with(as.list(c(params)), {
                 I <- states[1:n]
                 R <- states[[n+1]]
@@ -26,19 +26,52 @@ In_geom <- function(t, states, params) {
         })
 }
 
-SInR <- function(){
-        with(as.list(c(params)), {
-                S <- states[1]
-                I <- states[2:n]
+
+SIR <- function(time, states, params) {
+        with(params, {
+                stopifnot(length(outrate)==n)
+                S <- states[[1]]
+                I <- states[2:(n+1)]
                 R <- states[[n+2]]
 
-                dS <- μ - β*S*I - μ*S
-                Iprev <- c(β*S*I + (n*γ + μ)*I[1], I[1:(n-1)])
-                dI <- n*γ*Iprev - (n*γ + μ)*I
-                dR <- γ*I[[n]] - μ*R
+                inc <- β*S*sum(I)/N
+
+                outflow <- outrate*I
+                inrate <- outrate-μ
+                inflow <- c(inc, (I*inrate)[1:(n-1)])
+
+                dS <- μ*N - inc - μ*S
+                dI <- inflow - outflow
+                dR <- inrate[n]*I[[n]] - μ*R
+                dC <- inc
+
+                return(list(c(dS, dI, dR, dC)))
         })
 }
 
+######################################################################
+
+SInRFlow <- function(β, D, n, μ, S0, I0, ts, T) {
+        gamma <- 1/D
+        outrate <- rep(n*gamma + μ, times=n)
+
+        params <- list(β=β, n=n, μ=μ, N = S0+I0, outrate=outrate)
+        states <- c(S0, I0, numeric(n-1), 0, 0)
+        names(states) <- c("S", paste0("I", 1:n), "R", "inc")
+        return(Integration2(params, states, ts, T, SIR))
+}
+
+sinnerFlow <- function(β, D, kappa, n, μ, S0, I0, ts, T) {
+        r <- kappa2r(kappa, n)
+        a <- (1-1/r^n)/(D*(1-1/r))
+        #print(c(r, a))
+        outrate <- a*r^(0:(n-1)) + μ
+
+        params <- list(β=β, n=n, μ=μ, N=S0+I0, outrate=outrate)
+        states <- c(S0, I0, numeric(n-1), 0, 0)
+        names(states) <- c("S", paste0("I", 1:n), "R", "inc")
+        return(Integration2(params, states, ts, T, SIR))
+}
 
 ######################################################################
 
@@ -77,7 +110,7 @@ parCheck <- function(flow, ts, T) {
 
 ######################################################################
 
-Integration <- function(n, mu, kappa, ts, T, model=In_geom) {
+Integration <- function(n, mu, kappa, ts, T, model=InR_geom) {
         time <- timeSeq(ts, T, mid=FALSE)
         params <- parGenerator(n, mu, kappa)
         states <- c(1, numeric(n))
@@ -89,6 +122,14 @@ Integration <- function(n, mu, kappa, ts, T, model=In_geom) {
         return(soln[,"R"])
 }
 
+Integration2 <- function(params, states, ts, T, model) {
+        time <- timeSeq(ts, T, FALSE)
+        soln <- ode(y = states,
+                    times = time,
+                    func = model,
+                    parms = params)
+        return(soln)
+}
 ######################################################################
 
 compPlot <- function(gamm, ode, ts, T) {
@@ -104,6 +145,7 @@ compPlotDens <- function(gamm, ode, ts, T) {
                 geom_line(aes(y=ODE, color = "ODE")) +
                 labs(title = "ODE & Gamma (PDF*ts)", y = "Probability Density (*ts)")
 }
+
 
 ######################################################################
 
