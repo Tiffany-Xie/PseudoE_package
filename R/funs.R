@@ -38,7 +38,7 @@ SIR <- function(time, states, params) {
 
                 outflow <- outrate*I
                 inrate <- outrate-μ
-                inflow <- c(inc, (I*inrate)[1:(n-1)])
+                inflow <- c(inc, (I*inrate)[0:(n-1)])
 
                 dS <- μ*N - inc - μ*S
                 dI <- inflow - outflow
