@@ -62,9 +62,15 @@ SInRFlow <- function(β, D, n, μ, N, I0, ts, T) {
 }
 
 sinnerFlow <- function(β, D, kappa, n, μ, N, I0, ts, T) {
-  r <- kappa2r(kappa, n)
-  a <- (1-1/r^n)/(D*(1-1/r))
-  #print(c(r, a))
+  if (kappa == 1/n) {
+    r = n/D
+    a = 1
+  }
+  else {
+    r <- kappa2r(kappa, n)
+    a <- (1-1/r^n)/(D*(1-1/r))
+  }
+  print(c(r, a))
   outrate <- a*r^(0:(n-1)) + μ
   
   params <- list(β=β, n=n, μ=μ, N=N, outrate=outrate)
@@ -92,9 +98,9 @@ kappa2r <- function(kappa, n){
 
 ######################################################################
 
-parGenerator <- function(n, mu, kappa, μ=0) {
+parGenerator <- function(n, D, kappa, μ=0) {
   r <- kappa2r(kappa, n)
-  a <- (1-1/r^n)/(mu*(1-1/r))
+  a <- (1-1/r^n)/(D*(1-1/r))
   return(c(n = n, r = r, a = a, μ = μ))
 }
 
@@ -102,17 +108,17 @@ parCheck <- function(flow, ts, T) {
   flow <- diff(flow)
   time <- timeSeq(ts, T)
   tot <- sum(flow)
-  mu <- sum(flow*time)
+  D <- sum(flow*time)
   S <- sum(flow*time^2)
-  kappa <- S/mu^2 - 1
-  return(c(tot = tot, mu = mu, kappa = kappa))
+  kappa <- S/D^2 - 1
+  return(c(tot = tot, D = D, kappa = kappa))
 }
 
 ######################################################################
 
-Integration <- function(n, mu, kappa, ts, T, model=InR_geom) {
+Integration <- function(n, D, kappa, ts, T, model=InR_geom) {
   time <- timeSeq(ts, T, mid=FALSE)
-  params <- parGenerator(n, mu, kappa)
+  params <- parGenerator(n, D, kappa)
   states <- c(1, numeric(n))
   names(states) <- c(paste0("I", 1:n), "R")
   soln <- ode(y = states,
@@ -149,9 +155,9 @@ compPlotDens <- function(gamm, ode, ts, T) {
 
 ######################################################################
 
-gammaFlowDens <- function (mu, kappa, ts, T){
+gammaFlowDens <- function (D, kappa, ts, T){
   b <- boundaries(ts, T)
-  cum <- dgamma(b, 1/kappa, 1/(mu*kappa))
+  cum <- dgamma(b, 1/kappa, 1/(D*kappa))
   return(ts*cum)
 }
 
