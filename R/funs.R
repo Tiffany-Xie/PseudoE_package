@@ -70,7 +70,7 @@ sinnerFlow <- function(β, D, kappa, n, μ, N, I0, ts, T) {
     r <- kappa2r(kappa, n)
     a <- (1-1/r^n)/(D*(1-1/r))
   }
-  print(c(r, a))
+  #print(c(r, a))
   outrate <- a*r^(0:(n-1)) + μ
   
   params <- list(β=β, n=n, μ=μ, N=N, outrate=outrate)
